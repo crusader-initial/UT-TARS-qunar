@@ -98,13 +98,13 @@ export class UITarsModel extends Model {
     const { conversations, images, screenContext, scaleFactor } = params;
     const { logger, signal } = useContext();
 
-    const compressedImages = await Promise.all(
-      images.map((image) => preprocessResizeImage(image, MAX_PIXELS)),
-    );
+    // const compressedImages = await Promise.all(
+    //   images.map((image) => preprocessResizeImage(image, MAX_PIXELS)),
+    // );
 
     const messages = convertToOpenAIMessages({
       conversations,
-      images: compressedImages,
+      images: images,
     });
 
     const startTime = Date.now();
