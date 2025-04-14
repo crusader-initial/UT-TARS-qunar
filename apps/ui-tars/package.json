@@ -59,6 +59,7 @@
     "@computer-use/mac-screen-capture-permissions": "^1.0.2",
     "@computer-use/nut-js": "^4.2.0",
     "@ui-tars/operator-nut-js": "workspace:*",
+    "@ui-tars/operator-adb": "workspace:*",
     "@electron-toolkit/utils": "^3.0.0",
     "@common/electron-build": "workspace:*",
     "@ui-tars/sdk": "workspace:*",
