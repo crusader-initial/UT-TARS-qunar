@@ -35,7 +35,7 @@ export const getInstructionSysPrompt = (
 {
     "app_names": [
         {
-            "app_name": "com.ctrip.android",
+            "app_name": "ctrip.android.view",
             "name": "携程"
         },
         {
@@ -44,7 +44,7 @@ export const getInstructionSysPrompt = (
         },
         {
             "name": "美团",
-            "app_name": "com.meituan.android"
+            "app_name": "com.sankuai.meituan"
         }
     ],
     "Keyword_list": {
