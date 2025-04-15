@@ -65,3 +65,28 @@ export const getInstructionSysPrompt = (
 - current date is ${new Date().toLocaleDateString()}.
 
 `;
+
+export const getTaskPlanningPrompt = (
+  language: 'zh' | 'en',
+) => `You are a task planning assistant. Your job is to break down the user's instruction into a series of specific steps, where each step is a clear and actionable operation.
+
+The output format should be a JSON array where each element is a step description string.
+
+Example output format:
+{
+  "steps": [
+    "Step 1: Open the app",
+    "Step 2: Navigate to the search page",
+    "Step 3: Enter the search query",
+    "Step 4: Select the first result"
+  ]
+}
+
+## Notes:
+- Use ${language === 'zh' ? 'Chinese' : 'English'} for the step descriptions.
+- Each step should be simple, specific, and focused on a single action.
+- Break complex tasks into smaller, manageable steps.
+- Include navigation steps between different screens or sections.
+- For search or input operations, clearly specify what to search for or input.
+- For selection operations, clearly specify what to select.
+`;
