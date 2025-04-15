@@ -28,7 +28,6 @@ import {
 } from '@main/window/ScreenMarker';
 import { SettingStore } from '@main/store/setting';
 import { AppState, OperatorType } from '@main/store/types';
-import { Model } from 'node_modules/@ui-tars/sdk/dist/types';
 import { UITarsModel } from '@ui-tars/sdk/core';
 
 // 新增：规划任务的函数
