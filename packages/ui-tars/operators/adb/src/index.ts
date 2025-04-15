@@ -67,6 +67,7 @@ export class AdbOperator extends Operator {
       `hotkey(key='') # The available keys: enter,back,home,backspace,delete,menu,power,volume_up,volume_down,mute,lock`,
       `wait() #Sleep for 2s and take a screenshot to check for any changes.`,
       `press_home() # Press the home key`,
+      `open_app(package_name='') # Open an app by its package name`,
       `finished()`,
       `call_user() # Submit the task and call the user when the task is unsolvable, or when you need the user's help.`,
     ],
@@ -124,6 +125,9 @@ export class AdbOperator extends Operator {
       switch (action_type) {
         case 'click':
           if (startX !== null && startY !== null) {
+            logger.info(
+              `[AdbOperator] adb -s ${this.deviceId} shell input tap ${Math.round(startX)} ${Math.round(startY)}`,
+            );
             await commandWithTimeout(
               `adb -s ${this.deviceId} shell input tap ${Math.round(startX)} ${Math.round(startY)}`,
             );
@@ -131,6 +135,9 @@ export class AdbOperator extends Operator {
           break;
         case 'type':
           if (this.androidDevUseAdbIME === null) {
+            logger.info(
+              '[AdbOperator] adb -s ${this.deviceId} shell settings get secure default_input_method',
+            );
             const imeCheck = await commandWithTimeout(
               `adb -s ${this.deviceId} shell settings get secure default_input_method`,
             ).catch(() => ({
@@ -290,6 +297,19 @@ export class AdbOperator extends Operator {
                 `adb -s ${this.deviceId} shell input keyevent 26`,
               );
               break;
+          }
+          break;
+        case 'open_app':
+          const { package_name } = action_inputs;
+          if (package_name) {
+            logger.info(`[AdbOperator] Opening app: ${package_name}`);
+            await commandWithTimeout(
+              `adb -s ${this.deviceId} shell monkey -p ${package_name} -c android.intent.category.LAUNCHER 1`,
+            );
+          } else {
+            logger.warn(
+              '[AdbOperator] No package name provided for open_app action',
+            );
           }
           break;
         case 'wait':
