@@ -31,6 +31,8 @@ export type AppState = {
   messages: ConversationWithSoM[];
   abortController: AbortController | null;
   thinking: boolean;
+  planSteps?: string[]; // 规划的任务步骤列表
+  currentPlanStep?: number; // 当前执行的步骤索引
 };
 
 export enum VlmProvider {
