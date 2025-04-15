@@ -225,16 +225,17 @@ export const runAgent = async (
 
   await hideWindowBlock(async () => {
     await UTIOService.getInstance().sendInstruction(instructions);
+
     const preModelConfig = {
       baseURL: settings.vlmBaseUrl,
       apiKey: settings.vlmApiKey,
       model: 'anthropic/claude-3.7-sonnet',
     };
-    let instructionSysPrompt = getInstructionSysPrompt(language);
 
+    let instructionSysPrompt = getInstructionSysPrompt(language);
     // 尝试获取模型实例并调用纯文本方法
     try {
-      // 使用 as any 来访问私有属性
+      // 构建模型实例
       const preModel = new UITarsModel(preModelConfig);
 
       if (preModel && typeof preModel.invokeTextOnly === 'function') {
