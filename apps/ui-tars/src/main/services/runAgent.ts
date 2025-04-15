@@ -14,7 +14,10 @@ import { UTIOService } from '@main/services/utio';
 import { NutJSElectronOperator } from '../agent/operator';
 import { AdbElectronOperator } from '../agent/operator';
 import { getSystemPrompt } from '../agent/prompts';
-import { getInstructionSysPrompt } from '../agent/prompts';
+import {
+  getInstructionSysPrompt,
+  getTaskPlanningPrompt,
+} from '../agent/prompts';
 import {
   closeScreenMarker,
   hidePauseButton,
@@ -31,48 +34,50 @@ import { UITarsModel } from '@ui-tars/sdk/core';
 // 新增：规划任务的函数
 async function planTasks(
   instructions: string,
-  modelConfig: { baseURL: string; apiKey: string; model: string },
-  language: string = 'en',
+  preModel: UITarsModel,
+  language: 'zh' | 'en' = 'en',
 ): Promise<string[]> {
   logger.info('[planTasks] 开始规划任务');
 
   try {
-    // 使用 fetch 调用模型 API 进行规划
-    const response = await fetch(modelConfig.baseURL + 'chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${modelConfig.apiKey}`,
-      },
-      body: JSON.stringify({
-        model: modelConfig.model,
-        messages: [
-          {
-            role: 'system',
-            content: `你是一个任务规划助手。请将用户的指令分解为一系列具体的步骤，每个步骤应该是一个简单明确的操作。
-            输出格式应为 JSON 数组，每个元素是一个步骤描述字符串。
-            语言: ${language}`,
-          },
-          {
-            role: 'user',
-            content: `请将以下任务分解为具体步骤：${instructions}`,
-          },
-        ],
-        temperature: 0.2,
-        response_format: { type: 'json_object' },
-      }),
-    });
+    let taskPlanningPrompt = getTaskPlanningPrompt(language);
 
-    if (!response.ok) {
-      throw new Error(`规划 API 调用失败: ${response.statusText}`);
+    if (preModel && typeof preModel.invokeTextOnly === 'function') {
+      // 使用SDK调用模型
+      const response = await preModel.invokeTextOnly(
+        taskPlanningPrompt,
+        `请将以下任务分解为具体步骤：${instructions}`,
+      );
+      logger.info('[planTasks] 规划 API 响应:', response);
+
+      // 处理返回的结果
+      let planSteps: string[] = [];
+      try {
+        // 尝试解析JSON响应
+        const parsedResponse = JSON.parse(response);
+        planSteps = parsedResponse.steps || [];
+      } catch (parseError) {
+        // 如果不是有效的JSON，尝试从文本中提取步骤
+        logger.warn(
+          '[planTasks] 解析JSON失败，尝试从文本提取步骤:',
+          parseError,
+        );
+        // 简单的文本处理逻辑，根据实际返回格式可能需要调整
+        planSteps = response
+          .split('\n')
+          .filter(
+            (line) =>
+              line.trim().startsWith('Step') || line.trim().match(/^\d+\./),
+          )
+          .map((line) => line.trim());
+      }
+
+      logger.info('[planTasks] 规划完成，步骤数:', planSteps.length);
+      return planSteps;
+    } else {
+      logger.warn('[Text-only model] Method not available');
+      return [instructions];
     }
-
-    const data = await response.json();
-    logger.info('[planTasks] 规划 API 响应:', data);
-    const planSteps = JSON.parse(data.choices[0].message.content).steps || [];
-
-    logger.info('[planTasks] 规划完成，步骤数:', planSteps.length);
-    return planSteps;
   } catch (error) {
     logger.error('[planTasks] 规划失败:', error);
     // 如果规划失败，返回原始指令作为唯一步骤
