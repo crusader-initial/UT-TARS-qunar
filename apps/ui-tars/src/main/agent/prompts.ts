@@ -31,34 +31,36 @@ export const getInstructionSysPrompt = (
 
 ## Output Format
 \`\`\`
-# you need open app package:
-[
 {
- "app_name": "com.ctrip.android",
- "name": "携程"
-},
-{
-  "name": "去哪儿" ,
-  "app_name": "com.Qunar"
-},
-{
- "name": "美团",
- "app_name": "com.meituan.android"
+    "app_names": [
+        {
+            "app_name": "com.ctrip.android",
+            "name": "携程"
+        },
+        {
+            "name": "去哪儿",
+            "app_name": "com.Qunar"
+        },
+        {
+            "name": "美团",
+            "app_name": "com.meituan.android"
+        }
+    ],
+    "Keyword_list": {
+        "checkin_date": "2025-01-01",
+        "checkout_date": "",
+        "hotel_name": "",
+        "city_name": ""
+    }
 }
-]
-# Keyword List
-1. *checkin date*
-2. *checkout date*
-3. *hotel name*
-4. *city name*
-5. keyword1
-6. keyword2
 
 \`\`\`
 
 ## Note
 - Use ${language === 'zh' ? 'Chinese' : 'English'} in \`Thought\` part.
-- Use *xx* to wrap the key information must be extracted.if not exist, use empty string.
-- if checkin date or checkout date is not specified, use today's date.
+- if keyword not exist, use empty string.
+- if checkin date  is not specified, use today's date.
+- if checkout date is not specified, use checkin date + 1.
+- current date is ${new Date().toLocaleDateString()}.
 
 `;
