@@ -14,6 +14,7 @@ import { Model, type InvokeParams, type InvokeOutput } from './types';
 
 import { preprocessResizeImage, convertToOpenAIMessages } from './utils';
 import { DEFAULT_FACTORS, MAX_PIXELS } from './constants';
+import { log } from 'console';
 
 type OpenAIChatCompletionCreateParams = Omit<ClientOptions, 'maxRetries'> &
   Pick<
@@ -64,6 +65,37 @@ export class UITarsModel extends Model {
       top_p = 0.7,
       ...restOptions
     } = this.modelConfig;
+
+    // 打印完整的请求参数
+    const { logger } = useContext();
+    logger?.info(
+      '[UITarsModel Request]:',
+      JSON.stringify({
+        model,
+        messages: messages.map((msg) => ({
+          role: msg.role,
+          content:
+            typeof msg.content === 'string'
+              ? msg.content
+              : Array.isArray(msg.content)
+                ? msg.content.map((item) =>
+                    item.type === 'text'
+                      ? {
+                          type: 'text',
+                          text: item.text,
+                        }
+                      : {
+                          type: 'image_url',
+                          image_url: { url: '...(image data truncated)' },
+                        },
+                  )
+                : msg.content,
+        })),
+        max_tokens,
+        temperature,
+        top_p,
+      }),
+    );
 
     const openai = new OpenAI({
       ...restOptions,
@@ -151,6 +183,42 @@ export class UITarsModel extends Model {
         prediction,
         parsedPredictions: [],
       };
+    }
+  }
+
+  /**
+   * 纯文本调用大模型，不需要图片输入
+   * @param systemPrompt 系统提示词
+   * @param userMessage 用户消息
+   * @returns 模型输出结果
+   */
+  async invokeTextOnly(
+    systemPrompt: string,
+    userMessage: string,
+  ): Promise<string> {
+    const { logger, signal } = useContext();
+
+    // 构建纯文本消息
+    const messages: Array<ChatCompletionMessageParam> = [
+      {
+        role: 'system',
+        content: systemPrompt,
+      },
+      {
+        role: 'user',
+        content: userMessage,
+      },
+    ];
+
+    const startTime = Date.now();
+    try {
+      const result = await this.invokeModelProvider({ messages }, { signal });
+
+      logger?.info(`[UITarsModel TextOnly cost]: ${Date.now() - startTime}ms`);
+      return result.prediction;
+    } catch (e) {
+      logger?.error('[UITarsModel TextOnly] error', e);
+      throw e;
     }
   }
 }

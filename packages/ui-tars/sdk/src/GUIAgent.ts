@@ -398,4 +398,9 @@ export class GUIAgent<T extends Operator> extends BaseGUIAgent<
           actionSpaces.join('\n'),
         );
   }
+
+  // 提供获取model的方法
+  getModel() {
+    return this.model;
+  }
 }

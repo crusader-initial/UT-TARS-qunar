@@ -14,6 +14,7 @@ import { UTIOService } from '@main/services/utio';
 import { NutJSElectronOperator } from '../agent/operator';
 import { AdbElectronOperator } from '../agent/operator';
 import { getSystemPrompt } from '../agent/prompts';
+import { getInstructionSysPrompt } from '../agent/prompts';
 import {
   closeScreenMarker,
   hidePauseButton,
@@ -221,6 +222,28 @@ export const runAgent = async (
 
   await hideWindowBlock(async () => {
     await UTIOService.getInstance().sendInstruction(instructions);
+
+    let instructionSysPrompt = getInstructionSysPrompt(language);
+
+    // 尝试获取模型实例并调用纯文本方法
+    try {
+      // 使用 as any 来访问私有属性
+      const model = guiAgent.getModel();
+
+      if (model && typeof model.invokeTextOnly === 'function') {
+        // 正确传递两个独立参数
+        const response = await model.invokeTextOnly(
+          instructionSysPrompt,
+          instructions,
+        );
+        logger.info('[Text-only model response]', response);
+      } else {
+        logger.warn('[Text-only model] Method not available');
+      }
+    } catch (error) {
+      logger.error('[Text-only model error]', error);
+    }
+
     // 新增：先进行任务规划
     const modelConfig = {
       baseURL: settings.vlmBaseUrl,

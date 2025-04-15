@@ -85,6 +85,10 @@ export interface GUIAgentConfig<TOperator> {
 
   // ===== Optional =====
   systemPrompt?: string;
+  instructionSysPrompt?: string;
+  /**
+   * @default 5
+   */
   signal?: AbortSignal;
   onData?: (params: { data: GUIAgentData }) => void;
   onError?: (params: { data: GUIAgentData; error: GUIAgentError }) => void;
