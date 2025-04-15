@@ -25,6 +25,8 @@ import {
 } from '@main/window/ScreenMarker';
 import { SettingStore } from '@main/store/setting';
 import { AppState, OperatorType } from '@main/store/types';
+import { Model } from 'node_modules/@ui-tars/sdk/dist/types';
+import { UITarsModel } from '@ui-tars/sdk/core';
 
 // 新增：规划任务的函数
 async function planTasks(
@@ -36,7 +38,7 @@ async function planTasks(
 
   try {
     // 使用 fetch 调用模型 API 进行规划
-    const response = await fetch(modelConfig.baseURL, {
+    const response = await fetch(modelConfig.baseURL + 'chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -66,6 +68,7 @@ async function planTasks(
     }
 
     const data = await response.json();
+    logger.info('[planTasks] 规划 API 响应:', data);
     const planSteps = JSON.parse(data.choices[0].message.content).steps || [];
 
     logger.info('[planTasks] 规划完成，步骤数:', planSteps.length);
@@ -222,17 +225,21 @@ export const runAgent = async (
 
   await hideWindowBlock(async () => {
     await UTIOService.getInstance().sendInstruction(instructions);
-
+    const preModelConfig = {
+      baseURL: settings.vlmBaseUrl,
+      apiKey: settings.vlmApiKey,
+      model: 'anthropic/claude-3.7-sonnet',
+    };
     let instructionSysPrompt = getInstructionSysPrompt(language);
 
     // 尝试获取模型实例并调用纯文本方法
     try {
       // 使用 as any 来访问私有属性
-      const model = guiAgent.getModel();
+      const preModel = new UITarsModel(preModelConfig);
 
-      if (model && typeof model.invokeTextOnly === 'function') {
+      if (preModel && typeof preModel.invokeTextOnly === 'function') {
         // 正确传递两个独立参数
-        const response = await model.invokeTextOnly(
+        const response = await preModel.invokeTextOnly(
           instructionSysPrompt,
           instructions,
         );
@@ -245,12 +252,8 @@ export const runAgent = async (
     }
 
     // 新增：先进行任务规划
-    const modelConfig = {
-      baseURL: settings.vlmBaseUrl,
-      apiKey: settings.vlmApiKey,
-      model: settings.vlmModelName,
-    };
-    const planSteps = await planTasks(instructions, modelConfig, language);
+
+    const planSteps = await planTasks(instructions, preModelConfig, language);
 
     // 更新状态，显示规划结果
     setState({
