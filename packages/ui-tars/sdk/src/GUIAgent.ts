@@ -46,6 +46,49 @@ export class GUIAgent<T extends Operator> extends BaseGUIAgent<
     this.systemPrompt = config.systemPrompt || this.buildSystemPrompt();
   }
 
+  // 在类的开头添加一个辅助方法
+  private async waitForUIUpdate(actionType: string): Promise<void> {
+    const { logger } = this;
+    // 针对不同操作类型设置不同的等待时间
+    let waitTime = 500; // 默认等待时间(毫秒)
+
+    if (actionType.toLowerCase() === 'click') {
+      waitTime = 1000; // 点击操作后等待更长时间
+    } else if (actionType.toLowerCase() === 'type') {
+      waitTime = 300; // 输入操作等待较短时间
+    }
+
+    logger.info(
+      `[GUIAgent] 等待UI更新: ${waitTime}ms, 操作类型: ${actionType}`,
+    );
+
+    return new Promise((resolve) => setTimeout(resolve, waitTime));
+  }
+
+  async runWithPlan(planSteps: string[]): Promise<void> {
+    const { logger } = this;
+
+    if (!planSteps || planSteps.length === 0) {
+      logger.info('[GUIAgent] 没有规划步骤，跳过执行');
+      return;
+    }
+
+    logger.info(`[GUIAgent] 开始执行规划步骤，共 ${planSteps.length} 步`);
+
+    for (let i = 0; i < planSteps.length; i++) {
+      const step = planSteps[i];
+      logger.info(`[GUIAgent] 执行步骤 ${i + 1}/${planSteps.length}: ${step}`);
+
+      // 执行单个步骤
+      await this.run(step);
+
+      // 在步骤之间添加短暂延迟，确保 UI 更新完成
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+
+    logger.info('[GUIAgent] 所有规划步骤执行完成');
+  }
+
   async run(instruction: string) {
     const { operator, model, logger } = this;
     const {
@@ -298,6 +341,9 @@ export class GUIAgent<T extends Operator> extends BaseGUIAgent<
             ).catch((e) => {
               logger.error('GUIAgent execute error', e);
             });
+
+            // 等待UI更新
+            await this.waitForUIUpdate(parsedPrediction.action_type);
 
             if (executeOutput && executeOutput?.status) {
               data.status = executeOutput.status;
