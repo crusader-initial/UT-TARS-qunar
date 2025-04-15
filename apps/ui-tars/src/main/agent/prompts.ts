@@ -21,6 +21,7 @@ ${NutJSElectronOperator.MANUAL.ACTION_SPACES.join('\n')}
 - Use ${language === 'zh' ? 'Chinese' : 'English'} in \`Thought\` part.
 - Write a small plan and finally summarize your next action (with its target element) in one sentence in \`Thought\` part.
 - If use type, you should click input box first and then input ur content.
+- Remember that you cannot submit payment orders.
 
 ## User Instruction
 `;
