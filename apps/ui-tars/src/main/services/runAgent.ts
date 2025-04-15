@@ -239,10 +239,9 @@ export const runAgent = async (
 
     let instructionSysPrompt = getInstructionSysPrompt(language);
     // 尝试获取模型实例并调用纯文本方法
+    // 构建模型实例
+    const preModel = new UITarsModel(preModelConfig);
     try {
-      // 构建模型实例
-      const preModel = new UITarsModel(preModelConfig);
-
       if (preModel && typeof preModel.invokeTextOnly === 'function') {
         // 正确传递两个独立参数
         const response = await preModel.invokeTextOnly(
@@ -259,7 +258,7 @@ export const runAgent = async (
 
     // 新增：先进行任务规划
 
-    const planSteps = await planTasks(instructions, preModelConfig, language);
+    const planSteps = await planTasks(instructions, preModel, language);
 
     // 更新状态，显示规划结果
     setState({
