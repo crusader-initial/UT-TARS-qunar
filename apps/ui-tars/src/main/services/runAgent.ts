@@ -30,7 +30,7 @@ import { SettingStore } from '@main/store/setting';
 import { AppState, OperatorType } from '@main/store/types';
 import { UITarsModel } from '@ui-tars/sdk/core';
 
-// 新增：规划任务的函数
+// 规划任务的函数
 async function planTasks(
   instructions: string,
   preModel: UITarsModel,
@@ -286,11 +286,13 @@ export const runAgent = async (
           currentPlanStep: i,
         });
 
-        // 执行当前步骤
-        await guiAgent.runWithPlan(response, step, planSteps).catch((e) => {
-          logger.error(`[runAgent] 步骤 ${i + 1} 执行失败:`, e);
-          // 继续执行下一步，不中断整个流程
-        });
+        // // 执行当前步骤
+        // await guiAgent.runWithPlan(response, step, planSteps).catch((e) => {
+        //   logger.error(`[runAgent] 步骤 ${i + 1} 执行失败:`, e);
+        //   // 继续执行下一步，不中断整个流程
+        // });
+        const input = `userInstructions: ${response}, planStep: ${planSteps}`;
+        await guiAgent.run(input);
       }
     } else {
       // 如果没有规划步骤，直接执行原始指令
