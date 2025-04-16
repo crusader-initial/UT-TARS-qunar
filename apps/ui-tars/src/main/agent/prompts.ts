@@ -72,7 +72,7 @@ export const getTaskPlanningPrompt = (
 
 The output format should be a JSON array where each element is a step description string.
 
-Example output format a json:
+Example output format and you must follow the format is a json:
 {
   "steps": [
     "Step 1: Open the app",

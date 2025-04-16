@@ -50,7 +50,7 @@ export class GUIAgent<T extends Operator> extends BaseGUIAgent<
   private async waitForUIUpdate(actionType: string): Promise<void> {
     const { logger } = this;
     // 针对不同操作类型设置不同的等待时间
-    let waitTime = 500; // 默认等待时间(毫秒)
+    let waitTime = 1000; // 默认等待时间(毫秒)
 
     if (actionType.toLowerCase() === 'click') {
       waitTime = 1000; // 点击操作后等待更长时间
