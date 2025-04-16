@@ -24,6 +24,7 @@ ${NutJSElectronOperator.MANUAL.ACTION_SPACES.join('\n')}
 - If use type, you should click input box first and then input ur content.
 - Remember that you cannot submit payment orders.
 - If you complated the task, you must stop the task.
+- If you want to open an app, use open_app(package_name='') directly, no need to use click() first.
 
 ## User Instruction
 `;
