@@ -181,7 +181,8 @@ export class AdbOperator extends Operator {
 
               // 3. 执行输入
               // 3.1 首先需要将输入内容转换成base64编码
-              const encodeContent = btoa(unescape(encodeURIComponent(content)));
+              const utf8Bytes = unescape(encodeURIComponent(content)); // 转UTF-8字节
+              const encodeContent = btoa(utf8Bytes); // 编码Base64
               logger.info(
                 '[AdbOperator] 执行输入base64 encode content:',
                 encodeContent,
