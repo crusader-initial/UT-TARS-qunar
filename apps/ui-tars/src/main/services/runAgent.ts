@@ -233,17 +233,18 @@ export const runAgent = async (
     const preModelConfig = {
       baseURL: settings.vlmBaseUrl,
       apiKey: settings.vlmApiKey,
-      model: 'anthropic/claude-3.7-sonnet',
+      model: settings.vlmModelName,
     };
 
     let instructionSysPrompt = getInstructionSysPrompt(language);
     // 尝试获取模型实例并调用纯文本方法
     // 构建模型实例
     const preModel = new UITarsModel(preModelConfig);
+    let response: any = '';
     try {
       if (preModel && typeof preModel.invokeTextOnly === 'function') {
         // 正确传递两个独立参数
-        const response = await preModel.invokeTextOnly(
+        response = await preModel.invokeTextOnly(
           instructionSysPrompt,
           instructions,
         );
@@ -257,7 +258,7 @@ export const runAgent = async (
 
     // 新增：先进行任务规划
 
-    const planSteps = await planTasks(instructions, preModel, language);
+    const planSteps = await planTasks(response, preModel, language);
 
     // 更新状态，显示规划结果
     setState({

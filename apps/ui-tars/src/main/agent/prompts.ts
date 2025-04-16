@@ -8,6 +8,7 @@ export const getSystemPrompt = (
   language: 'zh' | 'en',
 ) => `You are a GUI agent. You are given a task and your action history, with screenshots. You need to perform the next action to complete the task.
 
+
 ## Output Format
 \`\`\`
 Thought: ...
@@ -22,6 +23,7 @@ ${NutJSElectronOperator.MANUAL.ACTION_SPACES.join('\n')}
 - Write a small plan and finally summarize your next action (with its target element) in one sentence in \`Thought\` part.
 - If use type, you should click input box first and then input ur content.
 - Remember that you cannot submit payment orders.
+- If you complated the task, you must stop the task.
 
 ## User Instruction
 `;
@@ -31,16 +33,15 @@ export const getInstructionSysPrompt = (
 ) => `You are a keyword extractor. You need to extract the key information from the user's instruction.
 
 ## Output Format
-\`\`\`
 {
     "app_names": [
         {
-            "app_name": "ctrip.android.view",
-            "name": "携程"
+            "name": "去哪儿旅行",
+            "app_name": "com.Qunar"
         },
         {
-            "name": "去哪儿",
-            "app_name": "com.Qunar"
+            "app_name": "ctrip.android.view",
+            "name": "携程旅行"
         },
         {
             "name": "美团",
@@ -55,7 +56,6 @@ export const getInstructionSysPrompt = (
     }
 }
 
-\`\`\`
 
 ## Note
 - Use ${language === 'zh' ? 'Chinese' : 'English'} in \`Thought\` part.
@@ -72,7 +72,7 @@ export const getTaskPlanningPrompt = (
 
 The output format should be a JSON array where each element is a step description string.
 
-Example output format:
+Example output format a json:
 {
   "steps": [
     "Step 1: Open the app",
