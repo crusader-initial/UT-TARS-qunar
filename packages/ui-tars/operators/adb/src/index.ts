@@ -151,7 +151,7 @@ export class AdbOperator extends Operator {
           }
           const content = action_inputs.content?.trim();
 
-          // 如果是中文内容，优先尝试剪贴板方法
+          // 这里默认都走adb keyboard的方式输入
           if (content) {
             try {
               // 这里只有通过keyboard的方式执行输入，所以android一定得看装KeyBoard apk
