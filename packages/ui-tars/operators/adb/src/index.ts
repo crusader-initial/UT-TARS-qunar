@@ -189,9 +189,9 @@ export class AdbOperator extends Operator {
                 content,
               );
               // 4. 执行输入
-              // 4.1 adb shell input text '${encodeContent}'
+              // 4.1 adb shell am broadcast -a ADB_INPUT_B64 --es msg '${encodeContent}'
               await commandWithTimeout(
-                `adb -s ${this.deviceId} shell input text '${encodeContent}'`,
+                `adb -s ${this.deviceId} shell am broadcast -a ADB_INPUT_B64 --es msg '${encodeContent}'`,
               );
             } catch (error) {
               logger.error('[AdbOperator] 执行输入失败:', error);
