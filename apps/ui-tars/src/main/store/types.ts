@@ -33,6 +33,18 @@ export type AppState = {
   thinking: boolean;
   planSteps?: string[]; // 规划的任务步骤列表
   currentPlanStep?: number; // 当前执行的步骤索引
+  // 添加任务报告字段
+  taskReport?: {
+    title: string;
+    summary: string;
+    details: Array<{
+      app_name: string;
+      price: string;
+      additional_info: string;
+    }>;
+    comparison: string;
+    recommendation: string;
+  };
 };
 
 export enum VlmProvider {
