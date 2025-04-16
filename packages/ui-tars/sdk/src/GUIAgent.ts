@@ -65,7 +65,11 @@ export class GUIAgent<T extends Operator> extends BaseGUIAgent<
     return new Promise((resolve) => setTimeout(resolve, waitTime));
   }
 
-  async runWithPlan(planSteps: string[]): Promise<void> {
+  async runWithPlan(
+    instruction: string,
+    step: string,
+    planSteps: string[],
+  ): Promise<void> {
     const { logger } = this;
 
     if (!planSteps || planSteps.length === 0) {
@@ -75,16 +79,8 @@ export class GUIAgent<T extends Operator> extends BaseGUIAgent<
 
     logger.info(`[GUIAgent] 开始执行规划步骤，共 ${planSteps.length} 步`);
 
-    for (let i = 0; i < planSteps.length; i++) {
-      const step = planSteps[i];
-      logger.info(`[GUIAgent] 执行步骤 ${i + 1}/${planSteps.length}: ${step}`);
-
-      // 执行单个步骤
-      await this.run(step);
-
-      // 在步骤之间添加短暂延迟，确保 UI 更新完成
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-    }
+    const input = `userInstructions: ${instruction}, planStep: ${planSteps}, currentStep: ${step}`;
+    await this.run(input);
 
     logger.info('[GUIAgent] 所有规划步骤执行完成');
   }

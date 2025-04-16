@@ -256,8 +256,7 @@ export const runAgent = async (
       logger.error('[Text-only model error]', error);
     }
 
-    // 新增：先进行任务规划
-
+    // 先进行任务规划
     const planSteps = await planTasks(response, preModel, language);
 
     // 更新状态，显示规划结果
@@ -288,7 +287,7 @@ export const runAgent = async (
         });
 
         // 执行当前步骤
-        await guiAgent.run(step).catch((e) => {
+        await guiAgent.runWithPlan(response, step, planSteps).catch((e) => {
           logger.error(`[runAgent] 步骤 ${i + 1} 执行失败:`, e);
           // 继续执行下一步，不中断整个流程
         });
