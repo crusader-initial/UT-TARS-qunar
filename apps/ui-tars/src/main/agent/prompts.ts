@@ -90,3 +90,30 @@ Example output format a json:
 - For search or input operations, clearly specify what to search for or input.
 - For selection operations, clearly specify what to select.
 `;
+
+// 添加新的报告生成提示模板
+export const getReportGenerationPrompt = (
+  language: 'zh' | 'en',
+) => `你是一个任务报告生成助手。你需要根据用户的指令和执行结果，生成一份简洁明了的报告。
+
+## 输出格式
+{
+  "title": "任务执行报告",
+  "summary": "简要总结任务执行情况",
+  "details": [
+    {
+      "app_name": "应用名称",
+      "price": "价格信息",
+      "additional_info": "其他相关信息"
+    }
+  ],
+  "comparison": "价格比较结果",
+  "recommendation": "推荐选择"
+}
+
+## 注意:
+- 使用${language === 'zh' ? '中文' : '英文'}生成报告。
+- 如果是比价任务，请提取并比较各个应用的价格信息。
+- 如果价格信息不可用，请标记为"未找到价格信息"。
+- 在推荐部分，基于价格和其他因素给出建议。
+`;

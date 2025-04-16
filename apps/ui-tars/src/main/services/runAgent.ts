@@ -17,6 +17,7 @@ import { getSystemPrompt } from '../agent/prompts';
 import {
   getInstructionSysPrompt,
   getTaskPlanningPrompt,
+  getReportGenerationPrompt,
 } from '../agent/prompts';
 import {
   closeScreenMarker,
@@ -81,6 +82,89 @@ async function planTasks(
     logger.error('[planTasks] 规划失败:', error);
     // 如果规划失败，返回原始指令作为唯一步骤
     return [instructions];
+  }
+}
+
+async function generateTaskReport(
+  instructions: string,
+  messages: ConversationWithSoM[],
+  preModel: UITarsModel,
+  language: 'zh' | 'en' = 'en',
+): Promise<any> {
+  logger.info('[generateTaskReport] 开始生成任务报告');
+
+  try {
+    // 提取所有对话内容和截图信息
+    const conversationHistory = messages
+      .map((msg) => {
+        if (msg.from === 'gpt' && msg.value) {
+          return `AI: ${msg.value}`;
+        } else if (msg.from === 'human' && msg.value !== '[IMAGE]') {
+          return `User: ${msg.value}`;
+        }
+        return '';
+      })
+      .filter(Boolean)
+      .join('\n');
+
+    // 获取报告生成提示
+    const reportPrompt = getReportGenerationPrompt(language);
+
+    if (preModel && typeof preModel.invokeTextOnly === 'function') {
+      // 构建报告请求
+      const reportRequest = `
+原始任务: ${instructions}
+
+对话历史:
+${conversationHistory}
+
+请根据以上信息生成一份任务执行报告，特别关注价格比较结果。
+`;
+
+      // 调用模型生成报告
+      const response = await preModel.invokeTextOnly(
+        reportPrompt,
+        reportRequest,
+      );
+
+      logger.info('[generateTaskReport] 报告生成响应:', response);
+
+      // 尝试解析JSON响应
+      try {
+        const parsedReport = JSON.parse(response);
+        return parsedReport;
+      } catch (parseError) {
+        logger.warn(
+          '[generateTaskReport] 解析JSON失败，返回原始响应:',
+          parseError,
+        );
+        return {
+          title: '任务执行报告',
+          summary: response,
+          details: [],
+          comparison: '',
+          recommendation: '',
+        };
+      }
+    } else {
+      logger.warn('[generateTaskReport] Text-only model 方法不可用');
+      return {
+        title: '任务执行报告',
+        summary: '无法生成详细报告，模型功能不可用',
+        details: [],
+        comparison: '',
+        recommendation: '',
+      };
+    }
+  } catch (error) {
+    logger.error('[generateTaskReport] 报告生成失败:', error);
+    return {
+      title: '任务执行报告',
+      summary: '报告生成过程中发生错误',
+      details: [],
+      comparison: '',
+      recommendation: '',
+    };
   }
 }
 
@@ -268,32 +352,42 @@ export const runAgent = async (
     // 如果有规划步骤，则逐步执行
     if (planSteps.length > 0) {
       logger.info(`[runAgent] 开始执行规划任务，共 ${planSteps.length} 个步骤`);
+      const input = `userInstructions: ${response}, planStep: ${planSteps}`;
+      await guiAgent.run(input);
+      //   for (let i = 0; i < planSteps.length; i++) {
+      //     if (abortController?.signal?.aborted) {
+      //       logger.info('[runAgent] 任务被中止');
+      //       break;
+      //     }
+      //     const step = planSteps[i];
+      //     logger.info(
+      //       `[runAgent] 执行步骤 ${i + 1}/${planSteps.length}: ${step}`,
+      //     );
+      //     // 更新当前执行的步骤
+      //     setState({
+      //       ...getState(),
+      //       currentPlanStep: i,
+      //     });
+      //     // 执行当前步骤
+      //     await guiAgent.runWithPlan(response, step, planSteps).catch((e) => {
+      //       logger.error(`[runAgent] 步骤 ${i + 1} 执行失败:`, e);
+      //       // 继续执行下一步，不中断整个流程
+      //     });
+      //   }
+      // 任务完成后生成报告
+      const taskReport = await generateTaskReport(
+        instructions,
+        getState().messages,
+        preModel,
+        language,
+      );
 
-      for (let i = 0; i < planSteps.length; i++) {
-        if (abortController?.signal?.aborted) {
-          logger.info('[runAgent] 任务被中止');
-          break;
-        }
-
-        const step = planSteps[i];
-        logger.info(
-          `[runAgent] 执行步骤 ${i + 1}/${planSteps.length}: ${step}`,
-        );
-
-        // 更新当前执行的步骤
-        setState({
-          ...getState(),
-          currentPlanStep: i,
-        });
-
-        // // 执行当前步骤
-        // await guiAgent.runWithPlan(response, step, planSteps).catch((e) => {
-        //   logger.error(`[runAgent] 步骤 ${i + 1} 执行失败:`, e);
-        //   // 继续执行下一步，不中断整个流程
-        // });
-        const input = `userInstructions: ${response}, planStep: ${planSteps}`;
-        await guiAgent.run(input);
-      }
+      // 更新状态，添加报告
+      setState({
+        ...getState(),
+        taskReport,
+        status: StatusEnum.END,
+      });
     } else {
       // 如果没有规划步骤，直接执行原始指令
       await guiAgent
