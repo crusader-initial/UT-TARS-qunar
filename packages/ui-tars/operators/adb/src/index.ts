@@ -14,6 +14,7 @@ import {
 import { command } from 'execa';
 import inquirer from 'inquirer';
 import { readFileSync } from 'fs';
+import { unescape } from 'querystring';
 
 function commandWithTimeout(cmd: string, timeout = 3000) {
   return command(cmd, { timeout });
@@ -143,45 +144,61 @@ export class AdbOperator extends Operator {
             ).catch(() => ({
               stdout: '',
             }));
+
             this.androidDevUseAdbIME =
               imeCheck.stdout.includes('com.android.adbkeyboard/.AdbIME') ||
               false;
           }
           const content = action_inputs.content?.trim();
-          const isChinese = (content || '').split('').some((char) => {
-            const code = char.charCodeAt(0);
-            return code >= 0x4e00 && code <= 0x9fff;
-          });
-          if (isChinese && !this.androidDevUseAdbIME) {
-            const imeSet = await commandWithTimeout(
-              `adb -s ${this.deviceId} shell ime set com.android.adbkeyboard/.AdbIME`,
-            ).catch((error) => {
-              return { stdout: '', stderr: error.shortMessage };
-            });
 
-            if (
-              imeSet.stdout === '' &&
-              imeSet.stderr.includes('cannot be selected')
-            ) {
-              logger.error(
-                '[AdbOperator] The AdbIME is unavaliable, please install and active it on your Android device and retry if you want UI-TARS use Chniese.',
-              );
-              return { status: StatusEnum.ERROR } as ExecuteOutput;
-            } else if (
-              imeSet.stdout.includes(
-                'Input method com.android.adbkeyboard/.AdbIME selected for user',
-              )
-            ) {
-              this.androidDevUseAdbIME = true;
-            }
-          }
+          // 如果是中文内容，优先尝试剪贴板方法
           if (content) {
-            // Use text command to input text, need to handle special characters
-            const escapedContent = content.replace(/(['"\\])/g, '\\$1');
-            const cmd = this.androidDevUseAdbIME
-              ? `adb -s ${this.deviceId} shell am broadcast -a ADB_INPUT_TEXT --es msg "${escapedContent}"`
-              : `adb -s ${this.deviceId} shell input text "${escapedContent}"`;
-            await commandWithTimeout(cmd);
+            try {
+              // 这里只有通过keyboard的方式执行输入，所以android一定得看装KeyBoard apk
+              // 1. 首先查看是否安装了key board apk
+              // 1.1 执行 adb shell ime list -a | grep 'adbkeyboard'
+              const checkAdbBoard = await commandWithTimeout(
+                `adb -s ${this.deviceId} shell ime list -a`,
+              ).catch(() => ({
+                stdout: '',
+              }));
+
+              // 1.2 如果为空或者没有数据表示没有安装，提示终止，并提示没有安装
+              if (!checkAdbBoard.stdout.includes('adbkeyboard')) {
+                throw Error('请先安装adbkeyboard输入法');
+              }
+
+              // 2. 启用输入法
+              // 2.1 执行adb shell ime enable com.android.adbkeyboard/.AdbIME
+              // 2.2 adb shell ime set com.android.adbkeyboard/.AdbIME
+              await commandWithTimeout(
+                `adb -s ${this.deviceId} shell ime enable com.android.adbkeyboard/.AdbIME`,
+              );
+
+              await commandWithTimeout(
+                `adb -s ${this.deviceId} shell ime set com.android.adbkeyboard/.AdbIME`,
+              );
+
+              // 3. 执行输入
+              // 3.1 首先需要将输入内容转换成base64编码
+              const encodeContent = btoa(unescape(encodeURIComponent(content)));
+              logger.info(
+                '[AdbOperator] 执行输入base64 encode content:',
+                encodeContent,
+                'origin content:',
+                content,
+              );
+              // 4. 执行输入
+              // 4.1 adb shell input text '${encodeContent}'
+              await commandWithTimeout(
+                `adb -s ${this.deviceId} shell input text '${encodeContent}'`,
+              );
+            } catch (error) {
+              logger.error('[AdbOperator] 执行输入失败:', error);
+              throw error;
+            }
+          } else {
+            logger.warn('[AdbOperator] 未检测到中文内容，尝试其他输入方法');
           }
           break;
         case 'swipe':
