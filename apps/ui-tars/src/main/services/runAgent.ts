@@ -88,7 +88,7 @@ async function planTasks(
 async function generateTaskReport(
   instructions: string,
   messages: ConversationWithSoM[],
-  preModel: UITarsModel,
+  genReportModel: UITarsModel,
   language: 'zh' | 'en' = 'en',
 ): Promise<any> {
   logger.info('[generateTaskReport] 开始生成任务报告');
@@ -110,19 +110,19 @@ async function generateTaskReport(
     // 获取报告生成提示
     const reportPrompt = getReportGenerationPrompt(language);
 
-    if (preModel && typeof preModel.invokeTextOnly === 'function') {
+    if (genReportModel && typeof genReportModel.invokeTextOnly === 'function') {
       // 构建报告请求
       const reportRequest = `
-原始任务: ${instructions}
+        原始任务: ${instructions}
 
-对话历史:
-${conversationHistory}
+        对话历史:
+        ${conversationHistory}
 
-请根据以上信息生成一份任务执行报告，特别关注价格比较结果。
-`;
+        请根据以上信息生成一份任务执行报告，特别关注价格比较结果。
+      `;
 
       // 调用模型生成报告
-      const response = await preModel.invokeTextOnly(
+      const response = await genReportModel.invokeTextOnly(
         reportPrompt,
         reportRequest,
       );
@@ -375,10 +375,16 @@ export const runAgent = async (
       //     });
       //   }
       // 任务完成后生成报告
+      const genReportModelConfig = {
+        baseURL: settings.vlmBaseUrl,
+        apiKey: settings.vlmApiKey,
+        model: 'openai/gpt-4.1-mini',
+      };
+      const genReportModel = new UITarsModel(genReportModelConfig);
       const taskReport = await generateTaskReport(
         instructions,
         getState().messages,
-        preModel,
+        genReportModel,
         language,
       );
 
