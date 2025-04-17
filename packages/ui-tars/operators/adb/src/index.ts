@@ -179,8 +179,16 @@ export class AdbOperator extends Operator {
                 `adb -s ${this.deviceId} shell ime set com.android.adbkeyboard/.AdbIME`,
               );
 
-              // 3. 执行输入
-              // 3.1 首先需要将输入内容转换成base64编码
+              // 3.执行删除文字命令，这里有可能输入框当中有数据，这里通过删除文字的方式
+              // 3.1 执行 adb shell input keyevent KEYCODE_DEL 50 次
+              for (let i = 0; i < 50; i++) {
+                await commandWithTimeout(
+                  `adb -s ${this.deviceId} shell input keyevent KEYCODE_DEL`,
+                );
+              }
+
+              // 4. 执行输入
+              // 4.1 首先需要将输入内容转换成base64编码
               const utf8Bytes = unescape(encodeURIComponent(content)); // 转UTF-8字节
               const encodeContent = btoa(utf8Bytes); // 编码Base64
               logger.info(
