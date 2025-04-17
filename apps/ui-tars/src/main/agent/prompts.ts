@@ -83,6 +83,7 @@ Example output format and you must follow the format is a json:
 - Include navigation steps between different screens or sections.
 - For search or input operations, clearly specify what to search for or input.
 - For selection operations, clearly specify what to select.
+- Only query and retrieve results, do not proceed to payment or checkout.
 `;
 
 // 添加新的报告生成提示模板

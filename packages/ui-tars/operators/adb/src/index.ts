@@ -16,7 +16,7 @@ import inquirer from 'inquirer';
 import { readFileSync } from 'fs';
 import { unescape } from 'querystring';
 
-function commandWithTimeout(cmd: string, timeout = 3000) {
+export function commandWithTimeout(cmd: string, timeout = 3000) {
   return command(cmd, { timeout });
 }
 
@@ -189,8 +189,9 @@ export class AdbOperator extends Operator {
 
               // 4. 执行输入
               // 4.1 首先需要将输入内容转换成base64编码
-              const utf8Bytes = unescape(encodeURIComponent(content)); // 转UTF-8字节
-              const encodeContent = btoa(utf8Bytes); // 编码Base64
+              // const utf8Bytes = unescape(encodeURIComponent(content)); // 转UTF-8字节
+              // const encodeContent = btoa(utf8Bytes); // 编码Base64
+              const encodeContent = Buffer.from(content).toString('base64');
               logger.info(
                 '[AdbOperator] 执行输入base64 encode content:',
                 encodeContent,

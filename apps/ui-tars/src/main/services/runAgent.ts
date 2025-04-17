@@ -30,6 +30,7 @@ import {
 import { SettingStore } from '@main/store/setting';
 import { AppState, OperatorType } from '@main/store/types';
 import { UITarsModel } from '@ui-tars/sdk/core';
+import { commandWithTimeout } from '@ui-tars/operator-adb';
 
 // 规划任务的函数
 async function planTasks(
@@ -403,68 +404,87 @@ export const runAgent = async (
       planSteps,
       currentPlanStep: 0,
     });
-    // 如果有规划步骤，则逐步执行
-    if (planSteps.length > 0) {
-      logger.info(`[runAgent] 开始执行规划任务，共 ${planSteps.length} 个步骤`);
-      const input = `userInstructions: ${response}, planStep: ${planSteps}`;
-      await guiAgent.run(input);
-      //   for (let i = 0; i < planSteps.length; i++) {
-      //     if (abortController?.signal?.aborted) {
-      //       logger.info('[runAgent] 任务被中止');
-      //       break;
-      //     }
-      //     const step = planSteps[i];
-      //     logger.info(
-      //       `[runAgent] 执行步骤 ${i + 1}/${planSteps.length}: ${step}`,
-      //     );
-      //     // 更新当前执行的步骤
-      //     setState({
-      //       ...getState(),
-      //       currentPlanStep: i,
-      //     });
-      //     // 执行当前步骤
-      //     await guiAgent.runWithPlan(response, step, planSteps).catch((e) => {
-      //       logger.error(`[runAgent] 步骤 ${i + 1} 执行失败:`, e);
-      //       // 继续执行下一步，不中断整个流程
-      //     });
-      //   }
-      // 任务完成后生成报告
-      const genReportModelConfig = {
-        baseURL: settings.vlmBaseUrl,
-        apiKey: settings.vlmApiKey,
-        model: 'openai/gpt-4.1-mini',
-      };
-      const genReportModel = new UITarsModel(genReportModelConfig);
-      const taskReport = await generateTaskReport(
-        instructions,
-        getState().messages,
-        genReportModel,
-        language,
-      );
 
-      // 更新状态，添加报告
-      setState({
-        ...getState(),
-        taskReport,
-        status: StatusEnum.END,
-      });
-    } else {
-      // 如果没有规划步骤，直接执行原始指令
-      await guiAgent
-        .run(instructions)
-        .catch((e) => {
-          logger.error('[runAgentLoop error]', e);
-          setState({
-            ...getState(),
-            status: StatusEnum.ERROR,
-            errorMsg: e.message,
-          });
-        })
-        .finally(() => {
-          closeScreenMarker();
-          hidePauseButton();
-          hideScreenWaterFlow();
+    const platformPackage = {
+      去哪儿旅行: 'com.Qunar',
+      携程旅行: 'ctrip.android.view',
+      美团: 'com.sankuai.meituan',
+      同程旅行: 'com.tongcheng.android ',
+      飞猪旅行: 'com.taobao.trip',
+    };
+    // 声明比价平台数组
+    const comparisonPlatforms = ['去哪儿旅行', '携程旅行', '同程旅行'];
+    for (const platform of comparisonPlatforms) {
+      const package_name = platformPackage[platform];
+      logger.info(`[AdbOperator] Opening app: ${package_name}`);
+      await commandWithTimeout(
+        `adb -s ${deviceId} shell monkey -p ${package_name} -c android.intent.category.LAUNCHER 1`,
+      );
+      // 如果有规划步骤，则逐步执行
+      if (planSteps.length > 0) {
+        logger.info(
+          `[runAgent] 开始执行规划任务，共 ${planSteps.length} 个步骤`,
+        );
+        const input = `userInstructions: ${response}, planStep: ${planSteps}`;
+        await guiAgent.run(input);
+        //   for (let i = 0; i < planSteps.length; i++) {
+        //     if (abortController?.signal?.aborted) {
+        //       logger.info('[runAgent] 任务被中止');
+        //       break;
+        //     }
+        //     const step = planSteps[i];
+        //     logger.info(
+        //       `[runAgent] 执行步骤 ${i + 1}/${planSteps.length}: ${step}`,
+        //     );
+        //     // 更新当前执行的步骤
+        //     setState({
+        //       ...getState(),
+        //       currentPlanStep: i,
+        //     });
+        //     // 执行当前步骤
+        //     await guiAgent.runWithPlan(response, step, planSteps).catch((e) => {
+        //       logger.error(`[runAgent] 步骤 ${i + 1} 执行失败:`, e);
+        //       // 继续执行下一步，不中断整个流程
+        //     });
+        //   }
+        // 任务完成后生成报告
+        const genReportModelConfig = {
+          baseURL: settings.vlmBaseUrl,
+          apiKey: settings.vlmApiKey,
+          model: 'openai/gpt-4.1-mini',
+        };
+        const genReportModel = new UITarsModel(genReportModelConfig);
+        const taskReport = await generateTaskReport(
+          instructions,
+          getState().messages,
+          genReportModel,
+          language,
+        );
+
+        // 更新状态，添加报告
+        setState({
+          ...getState(),
+          taskReport,
+          status: StatusEnum.END,
         });
+      } else {
+        // 如果没有规划步骤，直接执行原始指令
+        await guiAgent
+          .run(instructions)
+          .catch((e) => {
+            logger.error('[runAgentLoop error]', e);
+            setState({
+              ...getState(),
+              status: StatusEnum.ERROR,
+              errorMsg: e.message,
+            });
+          })
+          .finally(() => {
+            closeScreenMarker();
+            hidePauseButton();
+            hideScreenWaterFlow();
+          });
+      }
     }
   }).catch((e) => {
     logger.error('[runAgent error hideWindowBlock]', settings, e);
