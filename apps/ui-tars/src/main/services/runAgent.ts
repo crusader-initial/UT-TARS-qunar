@@ -52,10 +52,23 @@ async function planTasks(
 
       // 处理返回的结果
       let planSteps: string[] = [];
+
+      // 预处理响应，移除可能的Markdown代码块标记
+      let processedResponse = response;
+      // 检查是否是Markdown代码块格式（以```开头）
+      if (response.trim().startsWith('```')) {
+        // 移除开头的```和可能的语言标识
+        processedResponse = response.replace(/^```(?:json)?\s*\n?/, '');
+        // 移除结尾的```
+        processedResponse = processedResponse.replace(/\n?```\s*$/, '');
+        logger.info('[planTasks] 检测到Markdown格式，已处理为纯文本');
+      }
+
       try {
         // 尝试解析JSON响应
-        const parsedResponse = JSON.parse(response);
+        const parsedResponse = JSON.parse(processedResponse);
         planSteps = parsedResponse.steps || [];
+        logger.info('[planTasks] 成功解析JSON响应');
       } catch (parseError) {
         // 如果不是有效的JSON，尝试从文本中提取步骤
         logger.warn(
@@ -63,13 +76,28 @@ async function planTasks(
           parseError,
         );
         // 简单的文本处理逻辑，根据实际返回格式可能需要调整
-        planSteps = response
+        planSteps = processedResponse
           .split('\n')
           .filter(
             (line) =>
               line.trim().startsWith('Step') || line.trim().match(/^\d+\./),
           )
           .map((line) => line.trim());
+
+        // 如果没有找到步骤，尝试查找JSON格式的部分
+        if (planSteps.length === 0) {
+          const jsonMatch = processedResponse.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            try {
+              const jsonPart = jsonMatch[0];
+              logger.info('[planTasks] 尝试从文本中提取JSON部分');
+              const extractedJson = JSON.parse(jsonPart);
+              planSteps = extractedJson.steps || [];
+            } catch (jsonExtractError) {
+              logger.warn('[planTasks] 从文本提取JSON失败:', jsonExtractError);
+            }
+          }
+        }
       }
 
       logger.info('[planTasks] 规划完成，步骤数:', planSteps.length);
@@ -129,15 +157,41 @@ async function generateTaskReport(
 
       logger.info('[generateTaskReport] 报告生成响应:', response);
 
+      // 预处理响应，移除可能的Markdown代码块标记
+      let processedResponse = response;
+      // 检查是否是Markdown代码块格式（以```开头）
+      if (response.trim().startsWith('```')) {
+        // 移除开头的```和可能的语言标识
+        processedResponse = response.replace(/^```(?:json)?\s*\n?/, '');
+        // 移除结尾的```
+        processedResponse = processedResponse.replace(/\n?```\s*$/, '');
+        logger.info('[generateTaskReport] 检测到Markdown格式，已处理为纯文本');
+      }
+
       // 尝试解析JSON响应
       try {
-        const parsedReport = JSON.parse(response);
+        const parsedReport = JSON.parse(processedResponse);
         return parsedReport;
       } catch (parseError) {
         logger.warn(
           '[generateTaskReport] 解析JSON失败，返回原始响应:',
           parseError,
         );
+
+        // 尝试查找JSON格式的部分
+        const jsonMatch = processedResponse.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          try {
+            const jsonPart = jsonMatch[0];
+            logger.info('[generateTaskReport] 尝试从文本中提取JSON部分');
+            return JSON.parse(jsonPart);
+          } catch (jsonExtractError) {
+            logger.warn(
+              '[generateTaskReport] 从文本提取JSON失败:',
+              jsonExtractError,
+            );
+          }
+        }
         return {
           title: '任务执行报告',
           summary: response,
