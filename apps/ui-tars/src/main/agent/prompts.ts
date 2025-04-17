@@ -33,38 +33,30 @@ export const getInstructionSysPrompt = (
   language: 'zh' | 'en',
 ) => `You are a keyword extractor. You need to extract the key information from the user's instruction.
 
-## Output Format
-{
-    "app_names": [
-        {
-            "name": "去哪儿旅行",
-            "app_name": "com.Qunar"
-        },
-        {
-            "app_name": "ctrip.android.view",
-            "name": "携程旅行"
-        },
-        {
-            "name": "美团",
-            "app_name": "com.sankuai.meituan"
-        }
-    ],
-    "Keyword_list": {
-        "checkin_date": "2025-01-01",
-        "checkout_date": "",
-        "hotel_name": "",
-        "city_name": ""
-    }
-}
-
+## real-time information
+- current date is ${new Date().toLocaleDateString()}.
 
 ## Note
 - Use ${language === 'zh' ? 'Chinese' : 'English'} in \`Thought\` part.
-- if keyword not exist, use empty string.
-- if checkin date  is not specified, use today's date.
-- if checkout date is not specified, use checkin date + 1.
-- current date is ${new Date().toLocaleDateString()}.
+- Date key must be in format of YYYY-MM-DD.
+- You must split city name and hotel name in separate fields.
 
+## Explan
+- checkin_date：if user not specify checkin date, use current date or checkout date - 1.
+- checkout_date：if user not specify checkout date, use checkin date + 1.
+- hotel_name：name of hotel mentioned.
+- city_name：name of city mentioned.
+
+## Output Format
+{
+    "Keyword_list": {
+        "checkin_date": "",
+        "checkout_date": "",
+        "hotel_name": "",
+        "city_name": ""
+        "app_names": []
+    }
+}
 `;
 
 export const getTaskPlanningPrompt = (
