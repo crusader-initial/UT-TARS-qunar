@@ -150,8 +150,8 @@ export class AdbOperator extends Operator {
               false;
           }
           const content = action_inputs.content?.trim();
-          // 这里如果有换行\n也要去掉
-          let inputContent = content?.replace(/\n/g, '');
+          // 这里如果有换行\\n也要去掉
+          let inputContent = content?.replace(/\\n/g, '');
 
           // 这里默认都走adb keyboard的方式输入
           if (inputContent) {
