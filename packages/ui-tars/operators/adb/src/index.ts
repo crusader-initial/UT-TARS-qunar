@@ -150,9 +150,11 @@ export class AdbOperator extends Operator {
               false;
           }
           const content = action_inputs.content?.trim();
+          // 这里如果有换行\n也要去掉
+          let inputContent = content?.replace(/\n/g, '');
 
           // 这里默认都走adb keyboard的方式输入
-          if (content) {
+          if (inputContent) {
             try {
               // 这里只有通过keyboard的方式执行输入，所以android一定得看装KeyBoard apk
               // 1. 首先查看是否安装了key board apk
@@ -189,13 +191,14 @@ export class AdbOperator extends Operator {
 
               // 4. 执行输入
               // 4.1 首先需要将输入内容转换成base64编码
-              // const utf8Bytes = unescape(encodeURIComponent(content)); // 转UTF-8字节
+              // const utf8Bytes = unescape(encodeURIComponent(inputContent)); // 转UTF-8字节
               // const encodeContent = btoa(utf8Bytes); // 编码Base64
-              const encodeContent = Buffer.from(content).toString('base64');
+              const encodeContent =
+                Buffer.from(inputContent).toString('base64');
               logger.info(
                 '[AdbOperator] 执行输入base64 encode content:',
                 encodeContent,
-                'origin content:',
+                'origin inputContent:',
                 content,
               );
               // 4. 执行输入
