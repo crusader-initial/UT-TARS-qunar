@@ -31,7 +31,6 @@ import { SettingStore } from '@main/store/setting';
 import { AppState, OperatorType } from '@main/store/types';
 import { UITarsModel } from '@ui-tars/sdk/core';
 import { commandWithTimeout } from '@ui-tars/operator-adb';
-import { sign } from 'crypto';
 
 // 规划任务的函数
 async function planTasks(
