@@ -242,23 +242,27 @@ export class AdbOperator extends Operator {
           switch (direction) {
             case 'up':
               endX = startX;
-              endY = startY - 100; // Scroll up, decrease Y coordinate
+              endY = startY + 200; // Scroll up, decrease Y coordinate
               break;
             case 'down':
               endX = startX;
-              endY = startY + 100; // Scroll down, increase Y coordinate
+              endY = startY - 200; // Scroll down, increase Y coordinate
               break;
             case 'left':
-              endX = startX - 100; // Scroll left, decrease X coordinate
+              endX = startX + 200; // Scroll left, decrease X coordinate
               endY = startY;
               break;
             case 'right':
-              endX = startX + 100; // Scroll right, increase X coordinate
+              endX = startX - 200; // Scroll right, increase X coordinate
               endY = startY;
               break;
           }
           await commandWithTimeout(
-            `adb -s ${this.deviceId} shell input swipe ${Math.round(startX)} ${Math.round(startY)} ${Math.round(endX)} ${Math.round(endY)} 300`,
+            `adb -s ${this.deviceId} shell input swipe ${Math.round(startX)} ${Math.round(startY)} ${Math.round(endX)} ${Math.round(endY)} 100`,
+          );
+
+          logger.info(
+            `[AdbOperator] adb -s ${this.deviceId} shell input swipe ${Math.round(startX)} ${Math.round(startY)} ${Math.round(endX)} ${Math.round(endY)} 100`,
           );
           break;
         case 'press_home':

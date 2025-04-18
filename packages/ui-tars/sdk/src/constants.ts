@@ -31,6 +31,7 @@ call_user() # Submit the task and call the user when the task is unsolvable, or 
 
 ## Note
 - Write a small plan and finally summarize your next action (with its target element) in one sentence in \`Thought\` part.
+- If have select data maybe you should scroll
 - If use type, you should click input box first and then input ur content.
 
 ## User Instruction
