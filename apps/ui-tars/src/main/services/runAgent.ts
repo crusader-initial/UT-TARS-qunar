@@ -369,6 +369,7 @@ export const runAgent = async (
   await hideWindowBlock(async () => {
     await UTIOService.getInstance().sendInstruction(instructions);
 
+    // 设置默认调用指令预处理和规划模块的调用的模型
     const preModelConfig = {
       baseURL: 'https://openrouter.ai/api/v1/',
       apiKey:
