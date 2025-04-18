@@ -67,35 +67,35 @@ export class UITarsModel extends Model {
     } = this.modelConfig;
 
     // 打印完整的请求参数
-    const { logger } = useContext();
-    logger?.info(
-      '[UITarsModel Request]:',
-      JSON.stringify({
-        model,
-        messages: messages.map((msg) => ({
-          role: msg.role,
-          content:
-            typeof msg.content === 'string'
-              ? msg.content
-              : Array.isArray(msg.content)
-                ? msg.content.map((item) =>
-                    item.type === 'text'
-                      ? {
-                          type: 'text',
-                          text: item.text,
-                        }
-                      : {
-                          type: 'image_url',
-                          image_url: { url: '...(image data truncated)' },
-                        },
-                  )
-                : msg.content,
-        })),
-        max_tokens,
-        temperature,
-        top_p,
-      }),
-    );
+    // const { logger } = useContext();
+    // logger?.info(
+    //   '[UITarsModel Request]:',
+    //   JSON.stringify({
+    //     model,
+    //     messages: messages.map((msg) => ({
+    //       role: msg.role,
+    //       content:
+    //         typeof msg.content === 'string'
+    //           ? msg.content
+    //           : Array.isArray(msg.content)
+    //             ? msg.content.map((item) =>
+    //                 item.type === 'text'
+    //                   ? {
+    //                       type: 'text',
+    //                       text: item.text,
+    //                     }
+    //                   : {
+    //                       type: 'image_url',
+    //                       image_url: { url: '...(image data truncated)' },
+    //                     },
+    //               )
+    //             : msg.content,
+    //     })),
+    //     max_tokens,
+    //     temperature,
+    //     top_p,
+    //   }),
+    // );
 
     const openai = new OpenAI({
       ...restOptions,

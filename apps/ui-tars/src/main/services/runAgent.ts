@@ -31,6 +31,7 @@ import { SettingStore } from '@main/store/setting';
 import { AppState, OperatorType } from '@main/store/types';
 import { UITarsModel } from '@ui-tars/sdk/core';
 import { commandWithTimeout } from '@ui-tars/operator-adb';
+import { sign } from 'crypto';
 
 // 规划任务的函数
 async function planTasks(
@@ -370,9 +371,10 @@ export const runAgent = async (
     await UTIOService.getInstance().sendInstruction(instructions);
 
     const preModelConfig = {
-      baseURL: settings.vlmBaseUrl,
-      apiKey: settings.vlmApiKey,
-      model: settings.vlmModelName,
+      baseURL: 'https://openrouter.ai/api/v1/',
+      apiKey:
+        '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',
+      model: 'anthropic/claude-3.7-sonnet',
     };
 
     let instructionSysPrompt = getInstructionSysPrompt(language);
@@ -417,6 +419,14 @@ export const runAgent = async (
     for (const platform of comparisonPlatforms) {
       const package_name = platformPackage[platform];
       logger.info(`[AdbOperator] Opening app: ${package_name}`);
+      if (abortController?.signal?.aborted) {
+        logger.info('[runAgent] Aborted by user');
+        setState({
+          ...getState(),
+          status: StatusEnum.END,
+        });
+        return;
+      }
       await commandWithTimeout(
         `adb -s ${deviceId} shell monkey -p ${package_name} -c android.intent.category.LAUNCHER 1`,
       );
@@ -476,7 +486,7 @@ export const runAgent = async (
       model: 'google/gemini-2.0-flash-001',
     };
     const genReportModel = new UITarsModel(genReportModelConfig);
-    logger.info('[generateTaskReport] allMessages', getState().messages);
+    // logger.info('[generateTaskReport] allMessages', getState().messages);
     const taskReport = await generateTaskReport(
       instructions,
       getState().messages,
