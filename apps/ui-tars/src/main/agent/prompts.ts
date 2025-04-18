@@ -70,9 +70,12 @@ Example output format and you must follow the format is a json:
 {
   "steps": [
     "Step 1: Open the app",
-    "Step 2: Navigate to the search page",
-    "Step 3: Enter the search query",
-    "Step 4: Select the first result"
+    "Step 2: Navigate to the hotel module",
+    "Step 3: Select the city",
+    "Step 4: Choose check-in date",
+    "Step 5: Choose check-out date",
+    "Step 6: Enter hotel name",
+    "Step 7: Click the search button"
   ]
 }
 
@@ -84,6 +87,8 @@ Example output format and you must follow the format is a json:
 - For search or input operations, clearly specify what to search for or input.
 - For selection operations, clearly specify what to select.
 - Only query and retrieve results, do not proceed to payment or checkout.
+- When searching for hotels, always navigate to the hotel module first.
+- Once the price information is obtained, the task can be considered complete.
 `;
 
 // 添加新的报告生成提示模板

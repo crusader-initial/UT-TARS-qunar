@@ -420,6 +420,9 @@ export const runAgent = async (
       await commandWithTimeout(
         `adb -s ${deviceId} shell monkey -p ${package_name} -c android.intent.category.LAUNCHER 1`,
       );
+      // 添加延迟等待应用启动
+      logger.info(`[AdbOperator] Waiting for ${platform} to start...`);
+      await new Promise((resolve) => setTimeout(resolve, 3000)); // 等待3秒钟
       // 如果有规划步骤，则逐步执行
       if (planSteps.length > 0) {
         logger.info(
@@ -448,25 +451,6 @@ export const runAgent = async (
         //     });
         //   }
         // 任务完成后生成报告
-        const genReportModelConfig = {
-          baseURL: settings.vlmBaseUrl,
-          apiKey: settings.vlmApiKey,
-          model: 'openai/gpt-4.1-mini',
-        };
-        const genReportModel = new UITarsModel(genReportModelConfig);
-        const taskReport = await generateTaskReport(
-          instructions,
-          getState().messages,
-          genReportModel,
-          language,
-        );
-
-        // 更新状态，添加报告
-        setState({
-          ...getState(),
-          taskReport,
-          status: StatusEnum.END,
-        });
       } else {
         // 如果没有规划步骤，直接执行原始指令
         await guiAgent
@@ -486,6 +470,26 @@ export const runAgent = async (
           });
       }
     }
+    const genReportModelConfig = {
+      baseURL: settings.vlmBaseUrl,
+      apiKey: settings.vlmApiKey,
+      model: 'google/gemini-2.0-flash-001',
+    };
+    const genReportModel = new UITarsModel(genReportModelConfig);
+    logger.info('[generateTaskReport] allMessages', getState().messages);
+    const taskReport = await generateTaskReport(
+      instructions,
+      getState().messages,
+      genReportModel,
+      language,
+    );
+
+    // 更新状态，添加报告
+    setState({
+      ...getState(),
+      taskReport,
+      status: StatusEnum.END,
+    });
   }).catch((e) => {
     logger.error('[runAgent error hideWindowBlock]', settings, e);
   });
