@@ -25,7 +25,8 @@ ${NutJSElectronOperator.MANUAL.ACTION_SPACES.join('\n')}
 - Remember that you cannot submit payment orders.
 - If you complated the task, you must stop the task.
 - If you want to open an app, use open_app(package_name='') directly, no need to use click() first.
-- For price comparison tasks, after obtaining the price from one app, proceed to query the next app. The task is completed when prices from all apps have been collected.
+- For price comparison tasks, after obtaining the price from one app, proceed to query the next app. The task is completed when prices from all apps have been collected.If the hotel shows "No price available" or similar message, consider the task complete for that app.
+- When obtaining hotel prices, verify that the check-in/check-out dates, city, and hotel name are correct. If any information is incorrect, include steps to modify it.
 
 ## User Instruction
 `;
