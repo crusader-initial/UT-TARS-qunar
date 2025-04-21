@@ -373,7 +373,7 @@ export const runAgent = async (
     const preModelConfig = {
       baseURL: 'https://openrouter.ai/api/v1/',
       apiKey:
-        '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',
+        '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',
       model: 'anthropic/claude-3.7-sonnet',
     };
 

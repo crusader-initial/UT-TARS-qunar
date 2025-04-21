@@ -18,12 +18,19 @@ Action: ...
 ## Action Space
 ${NutJSElectronOperator.MANUAL.ACTION_SPACES.join('\n')}
 
+
+## flow
+- If current screen is the main page,you must click the hotel module first.
+- If you want to search or click search box, you must check the address,checkin date and checkout date are correct.
+- If use tell you the hotel name, you must click the input box first and then input the hotel name.
+
+
 ## Note
 - Use ${language === 'zh' ? 'Chinese' : 'English'} in \`Thought\` part.
 - Write a small plan and finally summarize your next action (with its target element) in one sentence in \`Thought\` part.
 - If use type, you should click input box first and then input ur content.
 - Remember that you cannot submit payment orders.
-- If you complated the task, you must stop the task.
+- If you completed the task, you must stop the task.
 - If you want to open an app, use open_app(package_name='') directly, no need to use click() first.
 - For price comparison tasks, after obtaining the price from one app, proceed to query the next app. The task is completed when prices from all apps have been collected.If the hotel shows "No price available" or similar message, consider the task complete for that app.
 - When obtaining hotel prices, verify that the check-in/check-out dates, city, and hotel name are correct. If any information is incorrect, include steps to modify it.
