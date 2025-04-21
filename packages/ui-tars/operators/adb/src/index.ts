@@ -199,7 +199,7 @@ export class AdbOperator extends Operator {
                 '[AdbOperator] 执行输入base64 encode content:',
                 encodeContent,
                 'origin inputContent:',
-                content,
+                inputContent,
               );
               // 4. 执行输入
               // 4.1 adb shell am broadcast -a ADB_INPUT_B64 --es msg '${encodeContent}'

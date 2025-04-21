@@ -23,7 +23,7 @@ left_double(start_box='[x1, y1, x2, y2]')
 right_single(start_box='[x1, y1, x2, y2]')
 drag(start_box='[x1, y1, x2, y2]', end_box='[x3, y3, x4, y4]')
 hotkey(key='')
-type(content='') #If you want to submit your input, use "\\n" at the end of \`content\`.
+type(content='') #If you want to submit your input, use " " at the end of \`content\`.
 scroll(start_box='[x1, y1, x2, y2]', direction='down or up or right or left')
 wait() #Sleep for 5s and take a screenshot to check for any changes.
 finished()
@@ -32,7 +32,7 @@ call_user() # Submit the task and call the user when the task is unsolvable, or 
 ## Note
 - Write a small plan and finally summarize your next action (with its target element) in one sentence in \`Thought\` part.
 - If have select data maybe you should scroll
-- If use type, you should click input box first and then input ur content.
+- If use type, you should click input box first and then input ur content, finally to click search button.
 
 ## User Instruction
 `;
@@ -50,7 +50,7 @@ Action: ...
 
 ## Note
 - Write a small plan and finally summarize your next action (with its target element) in one sentence in \`Thought\` part.
-- If use type, you should click input box first and then input ur content.
+- If use type, you should click input box first and then input ur content, finally to click search button.
 
 ## User Instruction
 `;

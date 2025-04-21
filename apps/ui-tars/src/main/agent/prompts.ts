@@ -22,7 +22,7 @@ ${NutJSElectronOperator.MANUAL.ACTION_SPACES.join('\n')}
 ## flow
 - If current screen is the main page,you must click the hotel module first.
 - If you want to search or click search box, you must check the address,checkin date and checkout date are correct.
-- If use tell you the hotel name, you must click the input box first and then input the hotel name.
+- If you want to search or click search box, you must check the input box is correct.
 
 
 ## Note
