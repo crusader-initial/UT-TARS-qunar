@@ -79,7 +79,9 @@ export class GUIAgent<T extends Operator> extends BaseGUIAgent<
 
     logger.info(`[GUIAgent] 开始执行规划步骤，共 ${planSteps.length} 步`);
 
-    const input = `userInstructions: ${instruction}, planStep: ${planSteps}, currentStep: ${step}`;
+    // const input = `userInstructions: ${instruction}, planStep: ${planSteps}, currentStep: ${step}`;
+    const input = `currentStep: ${step}`;
+
     await this.run(input);
 
     logger.info('[GUIAgent] 所有规划步骤执行完成');

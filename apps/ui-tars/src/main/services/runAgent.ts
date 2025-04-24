@@ -371,9 +371,8 @@ export const runAgent = async (
 
     // 设置默认调用指令预处理和规划模块的调用的模型
     const preModelConfig = {
-      baseURL: 'https://openrouter.ai/api/v1/',
-      apiKey:
-        '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',
+      baseURL: settings.vlmBaseUrl,
+      apiKey: settings.vlmApiKey,
       model: 'anthropic/claude-3.7-sonnet',
     };
 
@@ -435,32 +434,31 @@ export const runAgent = async (
       await new Promise((resolve) => setTimeout(resolve, 3000)); // 等待3秒钟
       // 如果有规划步骤，则逐步执行
       if (planSteps.length > 0) {
-        logger.info(
-          `[runAgent] 开始执行规划任务，共 ${planSteps.length} 个步骤`,
-        );
-        const input = `userInstructions: ${response}, planStep: ${planSteps}`;
-        await guiAgent.run(input);
-        //   for (let i = 0; i < planSteps.length; i++) {
-        //     if (abortController?.signal?.aborted) {
-        //       logger.info('[runAgent] 任务被中止');
-        //       break;
-        //     }
-        //     const step = planSteps[i];
-        //     logger.info(
-        //       `[runAgent] 执行步骤 ${i + 1}/${planSteps.length}: ${step}`,
-        //     );
-        //     // 更新当前执行的步骤
-        //     setState({
-        //       ...getState(),
-        //       currentPlanStep: i,
-        //     });
-        //     // 执行当前步骤
-        //     await guiAgent.runWithPlan(response, step, planSteps).catch((e) => {
-        //       logger.error(`[runAgent] 步骤 ${i + 1} 执行失败:`, e);
-        //       // 继续执行下一步，不中断整个流程
-        //     });
-        //   }
-        // 任务完成后生成报告
+        // logger.info(
+        //   `[runAgent] 开始执行规划任务，共 ${planSteps.length} 个步骤`,
+        // );
+        // const input = `userInstructions: ${response}, planStep: ${planSteps}`;
+        // await guiAgent.run(input);
+        for (let i = 1; i < planSteps.length; i++) {
+          if (abortController?.signal?.aborted) {
+            logger.info('[runAgent] 任务被中止');
+            break;
+          }
+          const step = planSteps[i];
+          logger.info(
+            `[runAgent] 执行步骤 ${i + 1}/${planSteps.length}: ${step}`,
+          );
+          // 更新当前执行的步骤
+          setState({
+            ...getState(),
+            currentPlanStep: i,
+          });
+          // 执行当前步骤
+          await guiAgent.runWithPlan(response, step, planSteps).catch((e) => {
+            logger.error(`[runAgent] 步骤 ${i + 1} 执行失败:`, e);
+            // 继续执行下一步，不中断整个流程
+          });
+        }
       } else {
         // 如果没有规划步骤，直接执行原始指令
         await guiAgent
