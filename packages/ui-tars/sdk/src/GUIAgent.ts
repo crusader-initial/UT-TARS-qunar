@@ -69,6 +69,7 @@ export class GUIAgent<T extends Operator> extends BaseGUIAgent<
     instruction: string,
     step: string,
     planSteps: string[],
+    historyAction: String,
   ): Promise<void> {
     const { logger } = this;
 
@@ -80,7 +81,7 @@ export class GUIAgent<T extends Operator> extends BaseGUIAgent<
     logger.info(`[GUIAgent] 开始执行规划步骤，共 ${planSteps.length} 步`);
 
     // const input = `userInstructions: ${instruction}, planStep: ${planSteps}, currentStep: ${step}`;
-    const input = `currentStep: ${step}`;
+    const input = `Completed steps: ${historyAction}, currentStep: ${step}`;
 
     await this.run(input);
 
