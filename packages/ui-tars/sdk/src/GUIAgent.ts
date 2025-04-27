@@ -353,6 +353,7 @@ export class GUIAgent<T extends Operator> extends BaseGUIAgent<
             }
           }
         }
+        i++;
       }
     } catch (error) {
       if (

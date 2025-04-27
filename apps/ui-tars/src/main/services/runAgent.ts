@@ -448,9 +448,10 @@ export const runAgent = async (
         noteArray[6] = `This step means clicking on the search button to start the search，note: If you have already clicked the search button or you have already on the list page, end directly.`;
         noteArray[3] = `This step means clicking on the check-in date，note: If you have already clicked the check-in date, do not click search, end directly.`;
         noteArray[4] = `This step means clicking on the check-out date，note: If you have already clicked the check-out date, do not click search, end directly.`;
+        noteArray[7] = `This step means enter the hotel detail page，note: If you have already on the true hotel detail page, end directly.`;
 
         let note = '';
-        for (let i = 1; i < planSteps.length; i++) {
+        for (let i = 1; i < 8; i++) {
           note = noteArray[i];
           if (abortController?.signal?.aborted) {
             logger.info('[runAgent] 任务被中止');
