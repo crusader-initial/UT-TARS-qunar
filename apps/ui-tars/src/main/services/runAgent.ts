@@ -440,7 +440,18 @@ export const runAgent = async (
         // const input = `userInstructions: ${response}, planStep: ${planSteps}`;
         // await guiAgent.run(input);
         let historyAction = planSteps[0];
+        // 创建与planSteps相同长度的note数组
+        const noteArray = new Array(planSteps.length).fill('');
+        noteArray[1] = `This step means clicking on the hotel module card on the homepage，note: If current screen is the main page,you must click the hotel module first.If you have already entered the hotel module, do not click search, end directly.`;
+        noteArray[5] = `This step means clicking on the search box to enter the hotel name，note: If you have already entered the true hotel name, do not click search, end directly.`;
+        noteArray[2] = `This step means choose the city，note: If you have already choose the true city, do not click search, end directly.`;
+        noteArray[6] = `This step means clicking on the search button to start the search，note: If you have already clicked the search button or you have already on the list page, end directly.`;
+        noteArray[3] = `This step means clicking on the check-in date，note: If you have already clicked the check-in date, do not click search, end directly.`;
+        noteArray[4] = `This step means clicking on the check-out date，note: If you have already clicked the check-out date, do not click search, end directly.`;
+
+        let note = '';
         for (let i = 1; i < planSteps.length; i++) {
+          note = noteArray[i];
           if (abortController?.signal?.aborted) {
             logger.info('[runAgent] 任务被中止');
             break;
@@ -456,7 +467,7 @@ export const runAgent = async (
           });
           // 执行当前步骤
           await guiAgent
-            .runWithPlan(response, step, planSteps, historyAction)
+            .runWithPlan(response, step, planSteps, historyAction, note)
             .catch((e) => {
               logger.error(`[runAgent] 步骤 ${i + 1} 执行失败:`, e);
               // 继续执行下一步，不中断整个流程

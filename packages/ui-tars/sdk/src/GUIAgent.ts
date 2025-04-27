@@ -69,7 +69,8 @@ export class GUIAgent<T extends Operator> extends BaseGUIAgent<
     instruction: string,
     step: string,
     planSteps: string[],
-    historyAction: String,
+    historyAction: string,
+    note: string,
   ): Promise<void> {
     const { logger } = this;
 
@@ -81,7 +82,7 @@ export class GUIAgent<T extends Operator> extends BaseGUIAgent<
     logger.info(`[GUIAgent] 开始执行规划步骤，共 ${planSteps.length} 步`);
 
     // const input = `userInstructions: ${instruction}, planStep: ${planSteps}, currentStep: ${step}`;
-    const input = `Completed steps: ${historyAction}, currentStep: ${step}`;
+    const input = `Completed steps: ${historyAction}, currentStep: ${step}, ${note}`;
 
     await this.run(input);
 
@@ -138,9 +139,12 @@ export class GUIAgent<T extends Operator> extends BaseGUIAgent<
 
     try {
       // eslint-disable-next-line no-constant-condition
+      let i = 0;
       while (true) {
         console.log('[run_data_status]', data.status);
-
+        if (i >= 5) {
+          break;
+        }
         if (data.status !== StatusEnum.RUNNING || signal?.aborted) {
           signal?.aborted && (data.status = StatusEnum.END);
           await onData?.({ data: { ...data, conversations: [] } });
