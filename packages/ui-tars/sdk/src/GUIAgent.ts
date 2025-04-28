@@ -71,22 +71,20 @@ export class GUIAgent<T extends Operator> extends BaseGUIAgent<
     planSteps: string[],
     historyAction: string,
     note: string,
-  ): Promise<void> {
+  ): Promise<any> {
     const { logger } = this;
 
     if (!planSteps || planSteps.length === 0) {
       logger.info('[GUIAgent] 没有规划步骤，跳过执行');
-      return;
+      return [];
     }
 
     logger.info(`[GUIAgent] 开始执行规划步骤，共 ${planSteps.length} 步`);
 
     // const input = `userInstructions: ${instruction}, planStep: ${planSteps}, currentStep: ${step}`;
     const input = `Completed steps: ${historyAction}, currentStep: ${step}, ${note}`;
-
-    await this.run(input);
-
     logger.info('[GUIAgent] 所有规划步骤执行完成');
+    return await this.run(input);
   }
 
   async run(instruction: string) {
@@ -98,7 +96,6 @@ export class GUIAgent<T extends Operator> extends BaseGUIAgent<
       retry = {},
       maxLoopCount = MAX_LOOP_COUNT,
     } = this.config;
-
     const currentTime = Date.now();
     const data: GUIAgentData = {
       version: ShareVersion.V1,
@@ -129,10 +126,10 @@ export class GUIAgent<T extends Operator> extends BaseGUIAgent<
         model: this.model,
       }),
     );
-
+    let exFlow: string[] = [];
     let loopCnt = 0;
     let snapshotErrCnt = 0;
-
+    exFlow.push('【执行流水】：' + instruction);
     // start running agent
     data.status = StatusEnum.RUNNING;
     await onData?.({ data: { ...data, conversations: [] } });
@@ -142,12 +139,11 @@ export class GUIAgent<T extends Operator> extends BaseGUIAgent<
       let i = 0;
       while (true) {
         console.log('[run_data_status]', data.status);
-        if (i >= 5) {
-          break;
-        }
         if (data.status !== StatusEnum.RUNNING || signal?.aborted) {
           signal?.aborted && (data.status = StatusEnum.END);
           await onData?.({ data: { ...data, conversations: [] } });
+          // exFlow 添加数据
+          exFlow.push('【执行结束】：当前步骤执行成功');
           break;
         }
 
@@ -160,6 +156,12 @@ export class GUIAgent<T extends Operator> extends BaseGUIAgent<
                 : 'Too many screenshot failures',
           });
           await onData?.({ data: { ...data, conversations: [] } });
+          exFlow.push(
+            '【执行结束】：当前步骤执行失败-执行次数超过最大次数，循环次数：' +
+              loopCnt +
+              '，截图错误次数：' +
+              snapshotErrCnt,
+          );
           break;
         }
 
@@ -266,7 +268,7 @@ export class GUIAgent<T extends Operator> extends BaseGUIAgent<
           'GUIAgent Parsed Predictions:',
           JSON.stringify(parsedPredictions),
         );
-
+        exFlow.push('【执行流水】：' + JSON.stringify(parsedPredictions));
         if (!prediction) {
           logger.error('[GUIAgent Response Empty]:', prediction);
           continue;
@@ -389,6 +391,8 @@ export class GUIAgent<T extends Operator> extends BaseGUIAgent<
 
       logger.info('[GUIAgent] finally: status', data.status);
     }
+
+    return exFlow;
   }
 
   private buildSystemPrompt() {

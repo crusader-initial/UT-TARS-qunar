@@ -451,6 +451,7 @@ export const runAgent = async (
         noteArray[7] = `This step means enter the hotel detail page，note: If you have already on the true hotel detail page, end directly.`;
 
         let note = '';
+        let saveData: string[] = [];
         for (let i = 1; i < 8; i++) {
           note = noteArray[i];
           if (abortController?.signal?.aborted) {
@@ -467,14 +468,19 @@ export const runAgent = async (
             currentPlanStep: i,
           });
           // 执行当前步骤
-          await guiAgent
+          let data: string[] = [];
+          data = await guiAgent
             .runWithPlan(response, step, planSteps, historyAction, note)
             .catch((e) => {
               logger.error(`[runAgent] 步骤 ${i + 1} 执行失败:`, e);
               // 继续执行下一步，不中断整个流程
             });
           historyAction += ',' + step;
+          // 将data添加到saveData数组中,data也是一个数组
+          saveData = saveData.concat(data);
         }
+        saveData.push('【任务执行完毕】：具体结果看每个步骤的流水数据');
+        saveToFile(saveData);
       } else {
         // 如果没有规划步骤，直接执行原始指令
         await guiAgent
@@ -517,4 +523,28 @@ export const runAgent = async (
   }).catch((e) => {
     logger.error('[runAgent error hideWindowBlock]', settings, e);
   });
+
+  /**
+   * 保存数据到文件
+   * @param data 要保存的数据字符串
+   * @returns 保存是否成功
+   */
+  async function saveToFile(data: string[]): Promise<boolean> {
+    try {
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const filePath = `/logs/tars-output-${timestamp}.txt`;
+      // 确保flowData文件夹存在
+      const fs = await import('fs/promises');
+      await fs.mkdir('/logs', { recursive: true }); // 递归创建目录，如果目录已存在则不会创建
+
+      // 将数据写入文件
+      await fs.writeFile(filePath, data.join('\n'), 'utf-8');
+
+      logger.info(`[GUIAgent] 文件已成功保存到: ${filePath}`);
+      return true;
+    } catch (error) {
+      logger.error('[GUIAgent] 保存文件时出错:', error);
+      return false;
+    }
+  }
 };
