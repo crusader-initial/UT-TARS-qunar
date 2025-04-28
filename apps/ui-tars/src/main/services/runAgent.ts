@@ -414,7 +414,7 @@ export const runAgent = async (
       飞猪旅行: 'com.taobao.trip',
     };
     // 声明比价平台数组
-    const comparisonPlatforms = ['去哪儿旅行', '携程旅行', '同程旅行'];
+    const comparisonPlatforms = ['去哪儿旅行'];
     for (const platform of comparisonPlatforms) {
       const package_name = platformPackage[platform];
       logger.info(`[AdbOperator] Opening app: ${package_name}`);
@@ -499,6 +499,12 @@ export const runAgent = async (
             hideScreenWaterFlow();
           });
       }
+      // 关闭app
+      await new Promise((resolve) => setTimeout(resolve, 3000)); // 等待3秒钟
+      logger.info(`[AdbOperator] Closing app: ${package_name}`);
+      await commandWithTimeout(
+        `adb -s ${deviceId} shell am force-stop ${package_name}`,
+      );
     }
     const genReportModelConfig = {
       baseURL: settings.vlmBaseUrl,

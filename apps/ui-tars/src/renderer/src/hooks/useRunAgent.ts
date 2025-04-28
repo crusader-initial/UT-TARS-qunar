@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 import { useToast } from '@chakra-ui/react';
-
+import { useEffect } from 'react';
 import { Conversation } from '@ui-tars/shared/types';
 
 import { useStore } from '@renderer/hooks/useStore';
@@ -20,6 +20,36 @@ export const useRunAgent = () => {
   const { ensurePermissions } = usePermissions();
 
   console.log('messages', messages);
+
+  // 添加自动发送 #Workspace 指令的效果
+  useEffect(() => {
+    // 检查是否是首次加载且没有消息
+    if (messages.length === 0) {
+      // 自动发送 #Workspace 指令
+      const workspaceCommand = '查询北京5月20日汉庭酒店(北京王府井店)';
+      console.log('自动发送指令:', workspaceCommand);
+
+      const initialMessages: Conversation[] = [
+        {
+          from: 'human',
+          value: workspaceCommand,
+          timing: { start: Date.now(), end: Date.now(), cost: 0 },
+        },
+      ];
+
+      // 设置指令并运行
+      Promise.all([
+        api.setInstructions({ instructions: workspaceCommand }),
+        api.setMessages({ messages: initialMessages }),
+      ])
+        .then(() => {
+          api.runAgent();
+        })
+        .catch((error) => {
+          console.error('自动发送 #Workspace 指令失败:', error);
+        });
+    }
+  }, [messages.length]); // 依赖于消息数量，确保只在首次加载时执行
 
   const run = async (value: string, callback: () => void = () => {}) => {
     if (
@@ -72,7 +102,9 @@ export const useRunAgent = () => {
       api.setInstructions({ instructions: value }),
       api.setMessages({ messages: [...messages, ...initialMessages] }),
     ]);
-
+    await api.setInstructions({
+      instructions: '查询北京5月20日汉庭酒店(北京王府井店)',
+    });
     api.runAgent();
 
     callback();
